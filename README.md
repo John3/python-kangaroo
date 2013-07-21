@@ -1,4 +1,0 @@
-python-kangaroo
-===============
-
-python-kangaroo
