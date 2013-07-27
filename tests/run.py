@@ -106,5 +106,42 @@ class KangarooTest(unittest.TestCase):
         f = dict(number=2)
         self.assertEquals(bucket.zoo.find(**f).number, 2)
 
+    def test_index(self):
+        bucket = Bucket()
+        bucket.zoo.add_index("number")
+        bucket.zoo.insert(dict(animal="lion", number=2))
+        bucket.zoo.insert(dict(animal="kangaroo", number=100))
+        f = dict(number=2)
+        self.assertEquals(len(bucket.zoo.find_all()), 2)        
+        self.assertEquals(len(bucket.zoo.find_all(**f)), 1)        
+
+    def test_delete_row(self):
+        bucket = Bucket()
+        bucket.zoo.insert(dict(animal="lion", number=2))
+        bucket.zoo.insert(dict(animal="kangaroo", number=100))
+        self.assertEquals(len(bucket.zoo.find_all()), 2)
+        bucket.zoo.delete_row(bucket.zoo.find_all()[0])
+        self.assertEquals(len(bucket.zoo.find_all()), 1)
+
+    def test_delete_row_with_index(self):
+        bucket = Bucket()
+        bucket.zoo.add_index("number")
+        bucket.zoo.insert(dict(animal="lion", number=2))
+        bucket.zoo.insert(dict(animal="kangaroo", number=100))
+        self.assertEquals(len(bucket.zoo.find_all()), 2)
+        bucket.zoo.delete_row(bucket.zoo.find_all()[0])
+        self.assertEquals(len(bucket.zoo.find_all()), 1)
+
+    def test_change_row(self):
+        bucket = Bucket()
+        bucket.zoo.add_index("number")
+        bucket.zoo.insert(dict(animal="lion", number=2))
+        row = bucket.zoo.find()
+        row["new_value"] = 1
+        row.new_value = 2
+
+        self.assertEqual(bucket.zoo.find().new_value, 2)
+        self.assertEqual(bucket.zoo.find()["new_value"], 2)
+
 if __name__ == '__main__':
     unittest.main()
