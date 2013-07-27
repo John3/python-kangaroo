@@ -92,6 +92,19 @@ class KangarooTest(unittest.TestCase):
         f = dict(number=2)
         self.assertEquals(bucket.zoo.find(**f).number, 2)
 
+    def test_storage_json(self):
+        p = os.path.join(self.test_path, "test.kg")
+        bucket = Bucket(storage_format="json", storage_path=p)
+        bucket.zoo.insert(dict(animal="lion", number=2))
+        bucket.zoo.insert(dict(animal="kangaroo", number=100))
+        bucket.flush()
+        self.assertTrue(os.path.exists(p))
+
+        bucket = Bucket(storage_format="json", storage_path=p)
+        self.assertEquals(len(bucket.zoo.find_all()), 2)        
+
+        f = dict(number=2)
+        self.assertEquals(bucket.zoo.find(**f).number, 2)
 
 if __name__ == '__main__':
     unittest.main()
