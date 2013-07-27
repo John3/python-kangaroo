@@ -6,11 +6,14 @@ import logging
 from kangaroo.bucket import Bucket
 
 class KangarooTest(unittest.TestCase):
-    
-    @classmethod
-    def tearDownClass(cls):
-        #super(GhostTest, cls).tearDownClass()
-        pass        
+    test_path = os.path.dirname(__file__)
+
+    def tearDown(self):
+        filesToDelete = ["test.kg"]
+        for f in filesToDelete:
+            p = os.path.join(self.test_path, f)
+            if os.path.exists(p):
+                os.remove(p)
     
     def test_create_bucket(self):
         bucket = Bucket()
@@ -74,6 +77,21 @@ class KangarooTest(unittest.TestCase):
         bucket.zoo.insert(dict(animal="kangaroo", number=100))
         f = dict(number=2)
         self.assertEquals(len(bucket.zoo.find_all(**f)), 1)
+
+    def test_storage_pickle(self):
+        p = os.path.join(self.test_path, "test.kg")
+        bucket = Bucket(storage_format="pickle", storage_path=p)
+        bucket.zoo.insert(dict(animal="lion", number=2))
+        bucket.zoo.insert(dict(animal="kangaroo", number=100))
+        bucket.flush()
+        self.assertTrue(os.path.exists(p))
+
+        bucket = Bucket(storage_format="pickle", storage_path=p)
+        self.assertEquals(len(bucket.zoo.find_all()), 2)        
+
+        f = dict(number=2)
+        self.assertEquals(bucket.zoo.find(**f).number, 2)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,20 +1,21 @@
-"""
-class ComplexEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, Table):
-            return obj.tbl_name
-        return json.JSONEncoder.default(self, obj)
-"""
-from kangaroo.filters import get_operator
-"""
-class Row(object):
-    def __getattr__(self, name):
-        if name in self.__tables:
-            return self.__tables[name]
+import os 
 
-        self.__tables[name] = Table(tbl_name=name)
-        return self.__tables[name]
-"""
+from kangaroo.filters import get_operator
+from kangaroo.storage import StorageCPickle
+from kangaroo.unique import generate_aleatory_string
+
+class Row(dict):
+
+    def __init__(self, **kwargs):
+        super(Row, self).__init__(**kwargs)
+        self.__id = generate_aleatory_string()
+
+    def __getattr__(self, name):
+        if name in self.keys():
+            return self[name]
+        raise AttributeError(" error")
+        
+    
 class Table(object):
     def __init__(self, tbl_name, tbl_index=[], **kwargs):
         self.__tbl_name = tbl_name
@@ -29,18 +30,16 @@ class Table(object):
     def tbl_name(self):
         return self.__tbl_name
 
-    def flush(self):
-        raise NotImplementedError()
-
-    def insert(self, row):
+    def insert(self, data):
+        row = Row(**data)
         self.__rows.append(row)
         for k in row.keys():
             if k in self.__tbl_index:
                 if k not in self.__index:
                     self.__index[k] = {}
-                if row[k] not in self.__index[k]:
-                    self.__index[k][row[k]] = []    
-                self.__index[k][row[k]].append(row)
+                if getattr(row, k) not in self.__index[k]:
+                    self.__index[k][getattr(row, k)] = []    
+                self.__index[k][getattr(row, k)].append(row)
 
     def find(self, **kwargs):
         result_set = self.find_all(**kwargs)
@@ -76,16 +75,28 @@ class Bucket(object):
         ["pickle", "json", "xml"]
         """
         self.__tables = {}
-        self.storage_format = storage_format
-        self.storage_path = storage_path
+
+        if storage_format == "pickle":
+            self.__storage = StorageCPickle(storage_path, self)
+        else:
+            raise Exception("Invalid storage format")
+
+        if storage_path is not None and os.path.exists(storage_path):
+            self.__storage.load()
 
     def __getattr__(self, name):
         if name in self.__tables:
             return self.__tables[name]
 
-        self.__tables[name] = Table(tbl_name=name)
-        return self.__tables[name]
+        table = self.add_table(Table(tbl_name=name))
+        return table
 
+    def add_table(self, table):
+        if table.tbl_name in self.__tables:
+            raise Exception("The table already exists")
+        self.__tables[table.tbl_name] = table
+        return table
+    
     def delete_table(self, tbl_name):
         if tbl_name in self.__tables:
             del self.__tables[tbl_name]
@@ -96,6 +107,6 @@ class Bucket(object):
     def tables(self):
         return self.__tables.values()
 
-    def flush_tables(self):
-        for t in self.tables:
-            t.flush()
+    def flush(self):
+        self.__storage.dump()
+
