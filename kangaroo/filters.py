@@ -1,5 +1,13 @@
 
 def get_operator(operator_name):
+    """Returns an Filter Class that represents the operator_name
+    
+    If there is not class that match with operator_name it will raise an 
+    exception. 
+
+    :param operator_name: An string that represents the operator
+    :returns: An instance of Filter Class
+    """
     if operator_name == "gt":
         return Gt
     elif operator_name == "gte":
@@ -21,10 +29,21 @@ def get_operator(operator_name):
 
 class Filter(object):
     def __init__(self, key, value):
+        """Base class for for filters
+    
+        :param key: A name that will be used to inspect the compared row.
+        :param value: A value that will be used for the comparison.
+        :returns: An instance of Filter Class
+        """
         self.key = key
         self.value = value 
 
     def compare(self, item):
+        """Compares the given item with value given
+        
+        :param item: An instance of Row
+        :returns: A boolean representing the result of the comparison
+        """
         raise NotImplementedError()
 
 class Gt(Filter):

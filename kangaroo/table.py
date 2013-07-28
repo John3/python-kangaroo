@@ -3,20 +3,24 @@ from kangaroo.unique import generate_aleatory_string
 
 class Row(dict):
 
-    def __init__(self, callback_update=None, **kwargs):
+    def __init__(self, table=None, **kwargs):
         super(Row, self).__init__(**kwargs)
         self.__id = generate_aleatory_string()
+        self.table = table
 
     def __getattr__(self, name):
         try:
             return super(Row, self).__getattr__(name)
-        except:
+        except AttributeError:
             if name in self.keys():
                 return self[name]
             raise
     
     def __setitem__(self, key, value):
         super(Row, self).__setitem__(key, value)
+        
+        if self.table is not None:
+            self.table.row_updated(self, key)
 
     def __setattr__(self, name, value):
         if name in self:
@@ -26,11 +30,19 @@ class Row(dict):
         
     @property
     def idd(self):
+        """Returns an unique id of the row
+        """
         return self.__id
 
 
 class Table(object):
-    def __init__(self, tbl_name, tbl_index=[], **kwargs):
+    def __init__(self, tbl_name, tbl_index=[]):
+        """Creates a new instance of kangaroo.Table
+        
+        :param tbl_name: The name of the table
+        :param tbl_index: a list of index names that we want to use 
+            in this table. 
+        """
         self.__tbl_name = tbl_name
         self.__rows = []
         self.__index = {}
@@ -43,14 +55,32 @@ class Table(object):
 
     @property
     def tbl_name(self):
+        """Returns the name of the table
+        :returns: an string that represents the name of the table
+        """
         return self.__tbl_name
 
+    @property
+    def tbl_index(self):
+        """Returns the list of indexs of the table
+        :returns: A list of index names
+        """
+        return self.__index.keys()
+
     def add_index(self, index_name):
+        """Add a new index in the table 
+        
+        :param index_name: The name of the index (a column in the table).
+        """
         if index_name not in self.__index:
             self.__index[index_name] = {}
             self.__build_index(index_name)
     
     def delete_index(self, index_name):
+        """Deletes an existing index in the table
+        
+        :param index_name: The name of the index
+        """
         if index_name in self.__index:
             del self.__index[index_name]
 
@@ -73,18 +103,71 @@ class Table(object):
                 if row.idd not in self.__index_map:
                     self.__index_map[row.idd] = []
                 self.__index_map[row.idd].append((index_name, v))
+    
+    
+    def row_updated(self, row, key_changed):
+        """Updates the index tree when a row it's modified
+        
+        :param row: An instance of kangaroo.Row
+        :param key_changed: The name of the column that was modified
+        """
+        if key_changed not in self.tbl_index:
+            return 
+        
+        # verify if we need to update the index_map
+        update = True
+        if row.idd in self.__index_map:
+            self.__index_map[row.idd] = []
+        
+        for i, v in self.__index_map[row.idd]:
+            if i == key_changed:
+                if v != row[i]:
+                    self.__index[i][v].remove(row)
+                    self.__index_map[row.idd].remove((i, v))
+                else:
+                    # if the value didn't change
+                    update = False
+        if update:
+            value = row[key_changed]
+            if value not in self.__index[key_changed]:
+                self.__index[key_changed][value] = []
+            self.__index[key_changed][value].append(row)
+            im = (key_changed, value)
+            self.__index_map[row.idd].append(im)
+
 
     def delete_row(self, row):
+        """Deletes a row from the table
+        
+        :param row: An instance of kangaroo.Row
+        """
         self.__delete_row_from_index(row)
         self.__rows.remove(row)
 
     def insert(self, data):
-        row = Row(**data)
+        """Inserts a new row in the table
+        
+        :param data: A dictionary that it's going to define the columns of the 
+            new Row.
+        :returns: An instance of Row
+        """
+        row = Row(table=self, **data)
         self.__rows.append(row)
-        for k in self.__index.keys():
+        for k in self.tbl_index:
             self.__build_index(k, [row])
+        return row
 
     def find(self, **kwargs):
+        """Finds a row in the table
+        
+        Example:
+            >> table.database.find(my_field=1, other_field__gt=50)
+
+        :param kwargs: a list of params that we are going to use to filter
+            the existing rows. 
+        :returns: None if there is no row that matchs or an instance of Row 
+            otherwise.
+        """
         result_set = self.find_all(**kwargs)
         if len(result_set) > 0:
             return result_set[0]
@@ -94,7 +177,7 @@ class Table(object):
         row_groups = []
         active_indexs = 0
         for filter_name, filter_value in filters.items():
-            if filter_name in self.__index.keys():
+            if filter_name in self.tbl_index:
                 active_indexs += 1
                 row_groups.append(
                     self.__index[filter_name].get(filter_value, []))
@@ -131,6 +214,16 @@ class Table(object):
         return fields, filters
 
     def find_all(self, **kwargs):
+        """Finds a list of rows in the table
+        
+        Example:
+            >> table.database.find_all(my_field=1, other_field__gt=50)
+
+        :param kwargs: a list of params that we are going to use to filter
+            the existing rows. 
+        :returns: None if there is no row that matchs or a list of Row 
+            instances otherwise.
+        """
         fields, filters = self.__parse_filters(kwargs)
         result_set = self.__reduce_row_by_index(fields)
 
@@ -138,3 +231,5 @@ class Table(object):
             result_set = filter(f.compare, result_set)
 
         return result_set
+
+        
