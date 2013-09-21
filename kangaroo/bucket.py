@@ -1,10 +1,11 @@
 import os 
 
-from kangaroo.storage import StorageCPickle, StorageJson
+from kangaroo.storage import StorageCPickle, StorageJson, StorageCsv
 from kangaroo.table import Table
 
 class Bucket(object):
-    def __init__(self, storage_format=None, storage_path=None):
+    def __init__(self, storage_format=None, storage_path=None, 
+        storage_options={}):
         """Creates a new Bucket instance.
 
         :param storage_path: a valid path where we want to save the information.
@@ -12,14 +13,18 @@ class Bucket(object):
             information. Valid values are [None, "pickle", "json"].
             If it's None, the information will be keeped in memory and 
             storage_path will be ignored
+        :param storage_options: a dictionary with specific options for every
+            storage. 
         """
         self.__tables = {}
         self.__storage = None
 
         if storage_format == "pickle":
-            self.__storage = StorageCPickle(storage_path, self)
+            self.__storage = StorageCPickle(storage_path, self, storage_options)
         elif storage_format == "json":
-            self.__storage = StorageJson(storage_path, self)
+            self.__storage = StorageJson(storage_path, self, storage_options)
+        elif storage_format == "csv":
+            self.__storage = StorageCsv(storage_path, self, storage_options)
         elif storage_format is None:
             self.__storage = None
         else:

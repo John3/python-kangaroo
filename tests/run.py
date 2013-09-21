@@ -112,6 +112,36 @@ class KangarooTest(unittest.TestCase):
         f = dict(number=2)
         self.assertEquals(bucket.zoo.find(**f).number, 2)
 
+    def test_storage_csv(self):
+        p = os.path.join(self.test_path, "test.kg")
+        bucket = Bucket(storage_format="csv", storage_path=p,
+            storage_options=dict(use_first_row_as_column_name=True))
+        bucket.zoo.insert(dict(animal="lion", number=2))
+        bucket.zoo.insert(dict(animal="kangaroo", number=100))
+        bucket.flush()
+        self.assertTrue(os.path.exists(p))
+
+        bucket = Bucket(storage_format="csv", storage_path=p, 
+            storage_options=dict(
+                    use_first_row_as_column_name=True,
+                    table_name="zoo"))
+        
+        self.assertEquals(len(bucket.zoo.find_all()), 2)        
+
+        f = dict(number="2")
+        self.assertEquals(bucket.zoo.find(**f).number, "2")
+
+    def test_storage_csv_load(self):
+        p = os.path.join(self.test_path, "tb_cidades.csv")
+        bucket = Bucket(storage_format="csv", storage_path=p, 
+            storage_options=dict(
+                    use_first_row_as_column_name=False,
+                    table_name="cidades"))
+        self.assertEquals(len(bucket.cidades.find_all()), 9714)        
+
+        f = dict(row0="0051")
+        self.assertEquals(bucket.cidades.find(**f).row2, '"AL"')
+
     def test_index(self):
         bucket = Bucket()
         bucket.zoo.add_index("number")
