@@ -34,6 +34,9 @@ Currently it's under development. There it's not and stable version yet.
 
 History
 -------
+**21/09/2013**
+ - Added CVS Storage
+ 
 **28/07/2013**
  - Added support for indexs
  - Added support for Json and Pickle Storages
