@@ -142,6 +142,17 @@ class KangarooTest(unittest.TestCase):
         f = dict(row0="0051")
         self.assertEquals(bucket.cidades.find(**f).row2, '"AL"')
 
+    def test_storage_csv_conversion(self):
+        p = os.path.join(self.test_path, "tb_cidades.csv")
+        bucket = Bucket(storage_format="csv", storage_path=p, 
+            storage_options=dict(
+                    use_first_row_as_column_name=False,
+                    table_name="cidades",
+                    conversion_methods=[int, int, str, str]
+                    ))
+        f = dict(row0=51)
+        self.assertEquals(bucket.cidades.find(**f).row2, '"AL"')
+
     def test_index(self):
         bucket = Bucket()
         bucket.zoo.add_index("number")

@@ -101,10 +101,10 @@ class StorageCsv(Storage):
                 if names is None:
                     names = ["row{0}".format(i) for i in range(len(row))]                    
                 drow = {}
-                i = 0
-                for e in row:
-                    drow[names[i]] = e
-                    i += 1
+                if self.options.get("conversion_methods") is not None:
+                    row = map(lambda x, y: x(y), 
+                            self.options.get("conversion_methods"), row)
+                drow = dict(zip(names, row))
                 table.insert(drow)
         data["tables"].append(table)
         self.load_into_memory(data)
