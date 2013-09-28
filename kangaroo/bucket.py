@@ -69,7 +69,7 @@ class Bucket(object):
     def tables(self):
         """Returns the list of available tables
         """
-        return self.__tables.values()
+        return list(self.__tables.values())
 
     def flush(self):
         """Saves the information from memory to disk

@@ -54,7 +54,7 @@ class StorageCPickle(Storage):
 class StorageJson(Storage):
     
     def load(self):
-        with open(self.path, 'rb') as f:
+        with open(self.path, 'r') as f:
             database = json.loads(f.read())
         data = dict(tables=[], time=database["time"])
         for t in database["tables"]:
@@ -78,7 +78,7 @@ class StorageJson(Storage):
         
         database = dict(time=time.time(), tables=tables)
 
-        with open(self.path, 'wb') as f:
+        with open(self.path, 'w') as f:
             f.write(json.dumps(database))
 
 
@@ -88,14 +88,14 @@ class StorageCsv(Storage):
         data = dict(tables=[])
         table = Table(tbl_name=self.options.get("table_name", "table1"))
 
-        with open(self.path, 'rb') as f:
+        with open(self.path, 'r') as f:
             database = csv.reader(f, 
                 delimiter=self.options.get("delimiter", ","), 
                 quotechar=self.options.get("quotechar", "|"))
             
             names = None
             if self.options.get("use_first_row_as_column_name", True):
-                names = database.next()
+                names = next(database)
 
             for row in database:
                 if names is None:
@@ -116,7 +116,7 @@ class StorageCsv(Storage):
         for table in self.bucket.tables:
             i += 1
             p = self.path if i == 0 else "{1}_{0}".format(self.path, i)
-            with open(p, 'wb') as f:
+            with open(p, 'w') as f:
                 writter = csv.writer(f, 
                         delimiter=self.options.get("delimiter", ","), 
                         quotechar=self.options.get("quotechar", "|"),
@@ -125,9 +125,9 @@ class StorageCsv(Storage):
                 if self.options.get("use_first_row_as_column_name", True):
                     title = table.find()
                     if title is not None:
-                        writter.writerow(title.keys())
+                        writter.writerow(list(title.keys()))
 
                 for drow in table.find_all():
-                    writter.writerow(drow.values())
+                    writter.writerow(list(drow.values()))
 
 

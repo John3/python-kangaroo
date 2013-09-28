@@ -51,7 +51,7 @@ class Table(object):
             self.__index[i] = {}
 
     def __unicode__(self):
-        return u"Kangaroo.Table<{0}>".format(unicode(self.tbl_name))
+        return "Kangaroo.Table<{0}>".format(self.tbl_name)
 
     @property
     def tbl_name(self):
@@ -65,7 +65,7 @@ class Table(object):
         """Returns the list of indexs of the table
         :returns: A list of index names
         """
-        return self.__index.keys()
+        return list(self.__index.keys())
 
     def add_index(self, index_name):
         """Add a new index in the table 
@@ -228,7 +228,7 @@ class Table(object):
         result_set = self.__reduce_row_by_index(fields)
 
         for f in filters:
-            result_set = filter(f.compare, result_set)
+            result_set = list(filter(f.compare, result_set))
 
         return result_set
 

@@ -8,5 +8,5 @@ def generate_aleatory_string():
     n = random.randint(0, 10000)
     t = time.time()
     m = hashlib.md5()
-    m.update(str(t) + str(n))
+    m.update((str(t) + str(n)).encode("utf-8"))
     return m.hexdigest()
