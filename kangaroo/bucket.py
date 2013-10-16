@@ -36,7 +36,6 @@ class Bucket(object):
     def __getattr__(self, name):
         if name in self.__tables:
             return self.__tables[name]
-
         table = self.add_table(Table(tbl_name=name))
         return table
 

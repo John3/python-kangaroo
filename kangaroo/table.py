@@ -2,15 +2,16 @@ from kangaroo.filters import get_operator
 from kangaroo.unique import generate_aleatory_string
 
 class Row(dict):
-
+    
     def __init__(self, table=None, **kwargs):
-        super(Row, self).__init__(**kwargs)
+        super(Row, self).__init__(**kwargs)        
         self.__id = generate_aleatory_string()
         self.table = table
 
-    def __getattr__(self, name):
+
+    def __getattribute__(self, name):
         try:
-            return super(Row, self).__getattr__(name)
+            return super(Row, self).__getattribute__(name)
         except AttributeError:
             if name in self.keys():
                 return self[name]
@@ -19,7 +20,9 @@ class Row(dict):
     def __setitem__(self, key, value):
         super(Row, self).__setitem__(key, value)
         
-        if self.table is not None:
+        # We use getattr here otherwise it will generate a problem with 
+        # pickle in python3.2+
+        if getattr(self, "table", None) is not None:
             self.table.row_updated(self, key)
 
     def __setattr__(self, name, value):
@@ -27,13 +30,12 @@ class Row(dict):
             self[name] = value
         else:
             super(Row, self).__setattr__(name, value)
-        
+    
     @property
     def idd(self):
         """Returns an unique id of the row
         """
         return self.__id
-
 
 class Table(object):
     def __init__(self, tbl_name, tbl_index=[]):
@@ -231,5 +233,3 @@ class Table(object):
             result_set = list(filter(f.compare, result_set))
 
         return result_set
-
-        

@@ -22,8 +22,8 @@ class KangarooTest(unittest.TestCase):
     def test_add_table(self):
         bucket = Bucket()
         name = bucket.new_table.tbl_name 
-        self.assertEquals(name, "new_table")
-        self.assertEquals(len(bucket.tables), 1)
+        self.assertEqual(name, "new_table")
+        self.assertEqual(len(bucket.tables), 1)
     
     def test_get_tables(self):
         bucket = Bucket()
@@ -31,30 +31,30 @@ class KangarooTest(unittest.TestCase):
         name2 = bucket.new_table2.tbl_name 
         
         tables = bucket.tables 
-        self.assertEquals(len(tables), 2)
+        self.assertEqual(len(tables), 2)
         self.assertTrue(tables[0].tbl_name in [name, name2])
         self.assertTrue(tables[1].tbl_name, [name, name2])
-        self.assertNotEquals(tables[0].tbl_name, tables[1].tbl_name)
+        self.assertNotEqual(tables[0].tbl_name, tables[1].tbl_name)
         
     def test_delete_table(self):
         bucket = Bucket()
         name = bucket.new_table.tbl_name 
         bucket.delete_table(name)
-        self.assertEquals(len(bucket.tables), 0)
+        self.assertEqual(len(bucket.tables), 0)
 
     def test_add_row(self):
         bucket = Bucket()
         bucket.zoo.insert(dict(animal="lion", number=2))
         bucket.zoo.insert(dict(animal="kangaroo", number=100))
 
-        self.assertEquals(len(bucket.zoo.find_all()), 2)
+        self.assertEqual(len(bucket.zoo.find_all()), 2)
 
     def test_table_find(self):
         bucket = Bucket()
         bucket.zoo.insert(dict(animal="lion", number=2))
         bucket.zoo.insert(dict(animal="kangaroo", number=100))
 
-        self.assertEquals(bucket.zoo.find(animal="kangaroo")["animal"], 
+        self.assertEqual(bucket.zoo.find(animal="kangaroo")["animal"], 
             "kangaroo")
 
     def test_filter_row_gt(self):
@@ -62,21 +62,21 @@ class KangarooTest(unittest.TestCase):
         bucket.zoo.insert(dict(animal="lion", number=2))
         bucket.zoo.insert(dict(animal="kangaroo", number=100))
         f = dict(number__gt=2)
-        self.assertEquals(len(bucket.zoo.find_all(**f)), 1)
+        self.assertEqual(len(bucket.zoo.find_all(**f)), 1)
 
     def test_filter_row_gte(self):
         bucket = Bucket()
         bucket.zoo.insert(dict(animal="lion", number=2))
         bucket.zoo.insert(dict(animal="kangaroo", number=100))
         f = dict(number__gte=2)
-        self.assertEquals(len(bucket.zoo.find_all(**f)), 2)
+        self.assertEqual(len(bucket.zoo.find_all(**f)), 2)
 
     def test_filter_row_eq(self):
         bucket = Bucket()
         bucket.zoo.insert(dict(animal="lion", number=2))
         bucket.zoo.insert(dict(animal="kangaroo", number=100))
         f = dict(number=2)
-        self.assertEquals(len(bucket.zoo.find_all(**f)), 1)
+        self.assertEqual(len(bucket.zoo.find_all(**f)), 1)
 
     def test_flush_no_storage(self):
         bucket = Bucket(storage_format=None)
@@ -93,11 +93,10 @@ class KangarooTest(unittest.TestCase):
         self.assertTrue(os.path.exists(p))
 
         bucket = Bucket(storage_format="pickle", storage_path=p)
-        self.assertEquals(len(bucket.zoo.find_all()), 2)        
-
+        self.assertEqual(len(bucket.zoo.find_all()), 2)        
         f = dict(number=2)
-        self.assertEquals(bucket.zoo.find(**f).number, 2)
-
+        self.assertEqual(bucket.zoo.find(**f).number, 2)
+    
     def test_storage_json(self):
         p = os.path.join(self.test_path, "test.kg")
         bucket = Bucket(storage_format="json", storage_path=p)
@@ -107,10 +106,10 @@ class KangarooTest(unittest.TestCase):
         self.assertTrue(os.path.exists(p))
 
         bucket = Bucket(storage_format="json", storage_path=p)
-        self.assertEquals(len(bucket.zoo.find_all()), 2)        
+        self.assertEqual(len(bucket.zoo.find_all()), 2)        
 
         f = dict(number=2)
-        self.assertEquals(bucket.zoo.find(**f).number, 2)
+        self.assertEqual(bucket.zoo.find(**f).number, 2)
 
     def test_storage_csv(self):
         p = os.path.join(self.test_path, "test.kg")
@@ -126,10 +125,10 @@ class KangarooTest(unittest.TestCase):
                     use_first_row_as_column_name=True,
                     table_name="zoo"))
         
-        self.assertEquals(len(bucket.zoo.find_all()), 2)        
+        self.assertEqual(len(bucket.zoo.find_all()), 2)        
 
         f = dict(number="2")
-        self.assertEquals(bucket.zoo.find(**f).number, "2")
+        self.assertEqual(bucket.zoo.find(**f).number, "2")
 
     def test_storage_csv_load(self):
         p = os.path.join(self.test_path, "tb_cidades.csv")
@@ -137,10 +136,10 @@ class KangarooTest(unittest.TestCase):
             storage_options=dict(
                     use_first_row_as_column_name=False,
                     table_name="cidades"))
-        self.assertEquals(len(bucket.cidades.find_all()), 9714)        
+        self.assertEqual(len(bucket.cidades.find_all()), 9714)        
 
         f = dict(row0="0051")
-        self.assertEquals(bucket.cidades.find(**f).row2, '"AL"')
+        self.assertEqual(bucket.cidades.find(**f).row2, '"AL"')
 
     def test_storage_csv_conversion(self):
         p = os.path.join(self.test_path, "tb_cidades.csv")
@@ -151,7 +150,7 @@ class KangarooTest(unittest.TestCase):
                     conversion_methods=[int, int, str, str]
                     ))
         f = dict(row0=51)
-        self.assertEquals(bucket.cidades.find(**f).row2, '"AL"')
+        self.assertEqual(bucket.cidades.find(**f).row2, '"AL"')
 
     def test_index(self):
         bucket = Bucket()
@@ -159,25 +158,25 @@ class KangarooTest(unittest.TestCase):
         bucket.zoo.insert(dict(animal="lion", number=2))
         bucket.zoo.insert(dict(animal="kangaroo", number=100))
         f = dict(number=2)
-        self.assertEquals(len(bucket.zoo.find_all()), 2)        
-        self.assertEquals(len(bucket.zoo.find_all(**f)), 1)        
+        self.assertEqual(len(bucket.zoo.find_all()), 2)        
+        self.assertEqual(len(bucket.zoo.find_all(**f)), 1)        
 
     def test_delete_row(self):
         bucket = Bucket()
         bucket.zoo.insert(dict(animal="lion", number=2))
         bucket.zoo.insert(dict(animal="kangaroo", number=100))
-        self.assertEquals(len(bucket.zoo.find_all()), 2)
+        self.assertEqual(len(bucket.zoo.find_all()), 2)
         bucket.zoo.delete_row(bucket.zoo.find_all()[0])
-        self.assertEquals(len(bucket.zoo.find_all()), 1)
+        self.assertEqual(len(bucket.zoo.find_all()), 1)
 
     def test_delete_row_with_index(self):
         bucket = Bucket()
         bucket.zoo.add_index("number")
         bucket.zoo.insert(dict(animal="lion", number=2))
         bucket.zoo.insert(dict(animal="kangaroo", number=100))
-        self.assertEquals(len(bucket.zoo.find_all()), 2)
+        self.assertEqual(len(bucket.zoo.find_all()), 2)
         bucket.zoo.delete_row(bucket.zoo.find_all()[0])
-        self.assertEquals(len(bucket.zoo.find_all()), 1)
+        self.assertEqual(len(bucket.zoo.find_all()), 1)
 
     def test_update_row_with_index(self):
         bucket = Bucket()
@@ -202,17 +201,16 @@ class KangarooTest(unittest.TestCase):
     
     def test_weird_name_override(self):
         bucket = Bucket()
-        names = ["__setitem__", "__setattr__", "__getattr__", "__init__"]
+        names = ["__setitem__", "__setattr__", "__init__"]
         d ={}
         for n in names:
             d[n] = n
         row = bucket.zoo.insert(d)
         for n in names:
-            self.assertNotEquals(type(getattr(row, n)), type(""))
+            self.assertNotEqual(type(getattr(row, n)), type(""))
 
         for n in names:
-            self.assertEquals(type(row[n]), type(""))
+            self.assertEqual(type(row[n]), type(""))
 
-    
 if __name__ == '__main__':
     unittest.main()
