@@ -34,6 +34,9 @@ Currently it's under development. There it's not and stable version yet.
 
 History
 -------
+**25/10/2013**
+ - Added support for python3.2+ and python3.3+
+ 
 **21/09/2013**
  - Added CVS Storage
  
