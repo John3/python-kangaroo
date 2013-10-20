@@ -1,7 +1,7 @@
 Kangaroo.py
 ========
 
-Kangaroo is light, concurrent (not yet!) and object oriented storage system. 
+Kangaroo is light, object oriented storage system. 
 
 
 Example
@@ -26,10 +26,6 @@ Installation
     > cd python-kangaroo
     > python setup.py install
 
-
-Status
-------------------
-Currently it's under development. There it's not and stable version yet.
 
 
 History
